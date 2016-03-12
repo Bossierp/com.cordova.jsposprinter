@@ -8,8 +8,8 @@
     <description>Cordova Android jsposprinter Plugin</description>
     <license>Apache 2.0</license>
     <keywords>cordova,android,jsposprinter</keywords>
-    <repo>https://github.com/ZhichengChen/cordova-plugin-android-jsposprinter.git</repo>
-    <issue>https://github.com/ZhichengChen/cordova-plugin-android-jsposprinter/issues</issue>
+    <repo>https://github.com/Bossierp/com.cordova.jsposprinter.git</repo>
+    <issue>https://github.com/Bossierp/com.cordova.jsposprinter/issues</issue>
 
     <js-module src="www/jsposprinter.js" name="jsposprinter">
         <merges target="cordova.jsposprinter" />
@@ -19,7 +19,7 @@
     <platform name="android">
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="jsposprinter">
-                <param name="android-package" value="com.mrboss.jsposprinter"/>
+                <param name="android-package" value="com.mrboss.jsposprinter.jsposprinter"/>
             </feature>
         </config-file>
 

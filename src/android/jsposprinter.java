@@ -22,9 +22,8 @@ package com.mrboss.jsposprinter;
 import org.json.JSONArray;
 import org.json.JSONException;
 
-import org.apache.cordova.CallbackContext;
-import org.apache.cordova.CordovaPlugin;
-import org.apache.cordova.PluginResult;
+import org.apache.cordova.*;
+import org.apache.cordova.engine.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -59,8 +58,8 @@ public class jsposprinter extends CordovaPlugin {
                 return true;
             } else if ("OpenPrinterByRS232".equals(action)) {
                 String rs232Port = args.getString(0);
-                String baudrate = args.getInt(1);
-                String flow = args.getInt(2);
+                int baudrate = args.getInt(1);
+                int flow = args.getInt(2);
                 OpenPrinterByRS232(rs232Port, baudrate, flow);
                 callbackContext.success(200);
                 return true;
@@ -243,33 +242,33 @@ public class jsposprinter extends CordovaPlugin {
         build.clearCommandBuffer();
     }
 
-    private void OpenPrinterByUsb() {
+    private void OpenPrinterByUsb() throws AposException {
         try {
             printer.openPrinter(Print.DEVTYPE_USB, "RTPSO", 0, 0);
             connect = true;
         } catch (AposException e) {
             connect = false;
-            throws e;
+            throw e;
         }
     }
 
-    private void OpenPrinterByTCP(String ip, String port) {
+    private void OpenPrinterByTCP(String ip, String port) throws AposException {
         try {
             printer.openPrinter(Print.DEVTYPE_TCP, ip, Integer.valueOf(port), 0);
             connect = true;
         } catch (AposException e) {
             connect = false;
-            throws e;
+            throw e;
         }
     }
 
-    private void OpenPrinterByRS232(String rs232Port, int baudrate, int flow) {
+    private void OpenPrinterByRS232(String rs232Port, int baudrate, int flow) throws AposException {
         try {
             printer.openPrinter(Print.DEVTYPE_RS232, rs232Port, baudrate, (flow == 1) ? 1 : 0);
             connect = true;
         } catch (AposException e) {
             connect = false;
-            throws e;
+            throw e;
         }
     }
 
