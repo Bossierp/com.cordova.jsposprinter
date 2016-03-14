@@ -40,10 +40,10 @@ module.exports = {
     TestUsbPrint: function(successCallback, errorCallback) {
         exec(successCallback, errorCallback, 'jsposprinter', 'TestUsbPrint', [successCallback, errorCallback]);
     },
-    TcpPrint: function(printstr, successCallback, errorCallback) {
+    TcpPrint: function(printstr, ip, port, successCallback, errorCallback) {
         exec(successCallback, errorCallback, 'jsposprinter', 'TcpPrint', [printstr, ip, port, successCallback, errorCallback]);
     },
-    TestTcpPrint: function(successCallback, errorCallback) {
+    TestTcpPrint: function(ip, port, successCallback, errorCallback) {
         exec(successCallback, errorCallback, 'jsposprinter', 'TestTcpPrint', [ip, port, successCallback, errorCallback]);
     }
 };
