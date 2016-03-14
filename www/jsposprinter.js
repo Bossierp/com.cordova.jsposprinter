@@ -34,19 +34,16 @@ module.exports = {
      * @param {Function} completeCallback   The callback that is called when user clicks on a button.
      * @param {Function} completeCallback   The callback that is called when user clicks on a button.
      */
-    Print: function(printstr, successCallback, errorCallback) {
-        exec(successCallback, errorCallback, 'jsposprinter', 'Print', [printstr, successCallback, errorCallback]);
+    UsbPrint: function(printstr, successCallback, errorCallback) {
+        exec(successCallback, errorCallback, 'jsposprinter', 'UsbPrint', [printstr, successCallback, errorCallback]);
     },
-    TestPrint: function(successCallback, errorCallback) {
-        exec(successCallback, errorCallback, 'jsposprinter', 'TestPrint', [successCallback, errorCallback]);
+    TestUsbPrint: function(successCallback, errorCallback) {
+        exec(successCallback, errorCallback, 'jsposprinter', 'TestUsbPrint', [successCallback, errorCallback]);
     },
-    OpenPrinterByUsb: function(successCallback, errorCallback) {
-        exec(successCallback, errorCallback, 'jsposprinter', 'OpenPrinterByUsb', [successCallback, errorCallback]);
+    TcpPrint: function(printstr, successCallback, errorCallback) {
+        exec(successCallback, errorCallback, 'jsposprinter', 'TcpPrint', [printstr, ip, port, successCallback, errorCallback]);
     },
-    OpenPrinterByTCP: function(ip, port, successCallback, errorCallback) {
-        exec(successCallback, errorCallback, 'jsposprinter', 'OpenPrinterByTCP', [ip, port, successCallback, errorCallback]);
-    },
-    OpenPrinterByRS232: function(rs232Port, baudrate, flow, successCallback, errorCallback) {
-        exec(successCallback, errorCallback, 'jsposprinter', 'OpenPrinterByRS232', [rs232Port, baudrate, flow, successCallback, errorCallback]);
+    TestTcpPrint: function(successCallback, errorCallback) {
+        exec(successCallback, errorCallback, 'jsposprinter', 'TestTcpPrint', [ip, port, successCallback, errorCallback]);
     }
 };

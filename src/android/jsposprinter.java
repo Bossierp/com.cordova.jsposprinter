@@ -19,6 +19,12 @@
 
 package com.mrboss.jsposprinter;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketAddress;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -28,6 +34,7 @@ import org.apache.cordova.engine.*;
 import java.io.IOException;
 import java.io.InputStream;
 
+import android.os.AsyncTask;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Context;
@@ -40,44 +47,29 @@ import java.io.*;
 public class jsposprinter extends CordovaPlugin {
 
     private static final String LOG_TAG = "jsposprinterPlugin";
-    private static Print printer = null;
-    private static boolean connect = false;
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         try {
-            if ("OpenPrinterByUsb".equals(action)) {
-                OpenPrinterByUsb();
+            if ("UsbPrint".equals(action)) {
+                String printtext = args.getString(0);
+                UsbPrint(printtext);
                 callbackContext.success(200);
                 return true;
-            } else if ("OpenPrinterByTCP".equals(action)) {
+            } else if ("TcpPrint".equals(action)) {
+                String printtext = args.getString(0);
+                String ip = args.getString(1);
+                int port = args.getInt(2);
+                TcpPrint(printtext, ip, port, callbackContext);
+                return true;
+            } else if ("TestUsbPrint".equals(action)) {
+                UsbPrint("clear::::addText;;;;AppPrintPOS\n::::");
+                callbackContext.success(200);
+                return true;
+            } else if ("TestTcpPrint".equals(action)) {
                 String ip = args.getString(0);
-                String port = args.getString(1);
-                OpenPrinterByTCP(ip, port);
-                callbackContext.success(200);
-                return true;
-            } else if ("OpenPrinterByRS232".equals(action)) {
-                String rs232Port = args.getString(0);
-                int baudrate = args.getInt(1);
-                int flow = args.getInt(2);
-                OpenPrinterByRS232(rs232Port, baudrate, flow);
-                callbackContext.success(200);
-                return true;
-            } else if ("TestPrint".equals(action)) {
-                TestPrint();
-                callbackContext.success(200);
-                return true;
-            } else if ("Print".equals(action)) {
-                String key = args.getString(0);
-                Print(key);
-                callbackContext.success(200);
-                return true;
-            } else if ("TestConvert".equals(action)) {
-                String key1 = args.getString(0);
-                String key2 = args.getString(1);
-                String key3 = args.getString(2);
-                TestConvert(key1, key2, key3);
-                callbackContext.success(200);
+                int port = args.getInt(1);
+                TcpPrint("PrintText", ip, port, callbackContext);
                 return true;
             }
         } catch (AposException e) {
@@ -93,13 +85,9 @@ public class jsposprinter extends CordovaPlugin {
         return false;
     }
 
-    @Override
-    public void initialize(CordovaInterface cordova, CordovaWebView webView) {
-        super.initialize(cordova, webView);
-        printer = new Print(cordova.getActivity());
-    }
-
-    public void Print(String printtext) throws AposException {
+    public void UsbPrint(String printtext) throws AposException {
+        Print printer = new Print(cordova.getActivity());
+        printer.openPrinter(Print.DEVTYPE_USB, "RTPSO", 0, 0);
         Builder build = new Builder("RTPSO", Builder.MODEL_CHINESE);
         int []status = {1};
         String[] printArr = printtext.split("::::");
@@ -115,11 +103,11 @@ public class jsposprinter extends CordovaPlugin {
         build.clearCommandBuffer();
     }
 
-    private void PrintHello(Builder build) throws AposException {
-        byte clear[] = {0x1b, 0x40};
-        build.addCommand(clear);
-        build.addText("PrintHello\n");
-        build.addCut(Builder.CUT_FEED);
+    public void TcpPrint(String printtext, String ip, int port) throws AposException {
+        TcpPrinterTask tpt = new TcpPrinterTask();
+        tpt.ip = ip;
+        tpt.port = port;
+        tpt.execute();
     }
 
     private void ExplainComment(Builder build, String[] oneprint) throws AposException {
@@ -196,82 +184,6 @@ public class jsposprinter extends CordovaPlugin {
         }
     }
 
-    public void TestPrint() throws AposException {
-        // Print printer = new Print(cordova.getActivity());
-        // printer.openPrinter(Print.DEVTYPE_USB, "RTPSO", 0, 0);
-        Builder build = new Builder("RTPSO", Builder.MODEL_CHINESE);
-        int []status = {1};
-        byte clear[] = {0x1b, 0x40};
-        build.addCommand(clear);
-        build.addTextAlign(Builder.ALIGN_CENTER);
-        build.addTextFont(Builder.FONT_A);
-        String testStr = "打印测试:乱打一通返点的咯额尔范菲发";
-        try {
-            byte[] t_utf8 = testStr.getBytes("UTF-8");
-            // String t_utf8Toibm850 = new String(t_utf8, "ibm850");
-            // build.addText(t_utf8Toibm850);
-            build.addCommand(t_utf8);
-        } catch (UnsupportedEncodingException e) {
-            build.addText("UnsupportedEncodingException:ibm850");
-        }
-        build.addText("\n");
-        build.addText("列印測試:亂打一通返點的咯額爾范菲發\n");
-        build.addText("Print Test\n");
-        build.addText("テスト印刷\n");
-        build.addCut(Builder.CUT_FEED);
-        printer.sendData(build, 1000, status);
-        build.clearCommandBuffer();
-    }
-
-    public void TestConvert(String msg, String fromCode, String toCode) throws AposException {
-        // Print printer = new Print(cordova.getActivity());
-        // printer.openPrinter(Print.DEVTYPE_USB, "RTPSO", 0, 0);
-        Builder build = new Builder("RTPSO", Builder.MODEL_CHINESE);
-        int []status = {1};
-        byte clear[] = {0x1b, 0x40};
-        build.addCommand(clear);
-        String testStr = msg;
-        try {
-            byte[] t_confrom = testStr.getBytes(fromCode);
-            String t_conto = new String(t_confrom, toCode);
-            build.addText(t_conto);
-        } catch (UnsupportedEncodingException e) {
-            build.addText("UnsupportedEncodingException:" + toCode);
-        }
-        printer.sendData(build, 1000, status);
-        build.clearCommandBuffer();
-    }
-
-    private void OpenPrinterByUsb() throws AposException {
-        try {
-            printer.openPrinter(Print.DEVTYPE_USB, "RTPSO", 0, 0);
-            connect = true;
-        } catch (AposException e) {
-            connect = false;
-            throw e;
-        }
-    }
-
-    private void OpenPrinterByTCP(String ip, String port) throws AposException {
-        try {
-            printer.openPrinter(Print.DEVTYPE_TCP, ip, Integer.valueOf(port), 0);
-            connect = true;
-        } catch (AposException e) {
-            connect = false;
-            throw e;
-        }
-    }
-
-    private void OpenPrinterByRS232(String rs232Port, int baudrate, int flow) throws AposException {
-        try {
-            printer.openPrinter(Print.DEVTYPE_RS232, rs232Port, baudrate, (flow == 1) ? 1 : 0);
-            connect = true;
-        } catch (AposException e) {
-            connect = false;
-            throw e;
-        }
-    }
-
     private void Alert(String msg) {
         Dialog alertDialog = new AlertDialog.Builder(this.cordova.getActivity()).
         setTitle("对话框的标题").
@@ -285,5 +197,63 @@ public class jsposprinter extends CordovaPlugin {
         }).
         create();
         alertDialog.show();
+    }
+
+    public void TcpPrint(String printstr, String ip, int port, CallbackContext callbackContext){
+        TcpPrinterTask tpt = new TcpPrinterTask();
+        tpt.ip = ip;
+        tpt.port = port;
+        tpt.printstr = printstr;
+        tpt.callbackContext = callbackContext;
+        tpt.execute();
+    }
+
+    private void PrintHello(Builder build) throws AposException {
+        Print printer = new Print(cordova.getActivity());
+        printer.openPrinter(Print.DEVTYPE_USB, "RTPSO", 0, 0);
+        byte clear[] = {0x1b, 0x40};
+        build.addCommand(clear);
+        build.addText("PrintHello\n");
+        build.addCut(Builder.CUT_FEED);
+    }
+
+    private class TcpPrinterTask extends AsyncTask {
+        public CallbackContext callbackContext;
+        public String encode = "GBK";
+        public String printstr = "";
+        public String ip = "";
+        public int port;
+        // onPostExecute displays the results of the AsyncTask.
+        @Override
+        protected Object doInBackground(Object[] params) {
+            String result = "OK";
+            try {
+                byte[] t_printstr = printstr.getBytes(encode);
+                Socket socket = new Socket();
+                SocketAddress socAddress = new InetSocketAddress(ip, port);
+                socket.connect(socAddress, 3000);
+                OutputStream ostream = socket.getOutputStream();
+                ostream.write(t_printstr);
+                socket.shutdownOutput();
+                socket.close();
+            } catch (IOException e) {
+                result = e.getMessage();
+            } catch (Exception e) {
+                result = e.getMessage();
+            }
+            return result;
+        }
+
+        @Override
+        protected void onPostExecute(Object o) {
+            // Alert(o.toString() + "");
+            if(o.toString() == "OK"){
+                callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, o.toString()));
+                callbackContext.success();
+            }
+            else{
+                callbackContext.error(o.toString());
+            }
+        }
     }
 }
