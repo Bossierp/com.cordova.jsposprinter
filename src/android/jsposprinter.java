@@ -62,7 +62,7 @@ public class jsposprinter extends CordovaPlugin {
                 int port = args.getInt(2);
                 String encode = args.getString(3);
                 int timeout = args.getInt(4);
-                TcpPrint(printtext, ip, port, encode, timeout, callbackContext);
+                TcpPrint(printtext, ip, port, timeout, encode, callbackContext);
                 return true;
             } else if ("TestUsbPrint".equals(action)) {
                 UsbPrint("clear::::addText;;;;AppPrintPOS\n::::");
@@ -71,7 +71,7 @@ public class jsposprinter extends CordovaPlugin {
             } else if ("TestTcpPrint".equals(action)) {
                 String ip = args.getString(0);
                 int port = args.getInt(1);
-                TcpPrint("PrintText", ip, port, "GBK", 3000, callbackContext);
+                TcpPrint("PrintText", ip, port, 3000, "GBK", callbackContext);
                 return true;
             }
         } catch (AposException e) {
