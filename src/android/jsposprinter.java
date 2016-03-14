@@ -88,7 +88,7 @@ public class jsposprinter extends CordovaPlugin {
     public void UsbPrint(String printtext) throws AposException {
         Print printer = new Print(cordova.getActivity());
         printer.openPrinter(Print.DEVTYPE_USB, "RTPSO", 0, 0);
-        Builder build = new Builder("RTPSO", Builder.MODEL_CHINESE);
+        LitterBuilder build = new LitterBuilder("RTPSO", LitterBuilder.MODEL_CHINESE);
         int []status = {1};
         String[] printArr = printtext.split("::::");
 
@@ -98,19 +98,11 @@ public class jsposprinter extends CordovaPlugin {
                 ExplainComment(build, oneprint);
             }
         }
-        // PrintHello(build);
         printer.sendData(build, 1000, status);
         build.clearCommandBuffer();
     }
 
-    public void TcpPrint(String printtext, String ip, int port) throws AposException {
-        TcpPrinterTask tpt = new TcpPrinterTask();
-        tpt.ip = ip;
-        tpt.port = port;
-        tpt.execute();
-    }
-
-    private void ExplainComment(Builder build, String[] oneprint) throws AposException {
+    private void ExplainComment(LitterBuilder build, String[] oneprint) throws AposException {
         String comment = oneprint[0];
         if (comment.equals("addText")) {
             build.addText(oneprint[1]);
@@ -121,61 +113,8 @@ public class jsposprinter extends CordovaPlugin {
             } catch (UnsupportedEncodingException e) {
                 build.addText("UnsupportedEncodingException:" + oneprint[1]);
             }
-        } else if (comment.equals("addTextAlign")) {
-            build.addTextAlign(Integer.parseInt(oneprint[1]));
         } else if (comment.equals("clearCommandBuffer")) {
             build.clearCommandBuffer();
-        } else if (comment.equals("addCut")) {
-            if (oneprint.length == 1) {
-                build.addCut(Builder.CUT_FEED);
-            } else {
-                build.addCut(Integer.parseInt(oneprint[1]));
-            }
-        } else if (comment.equals("addTextLineSpace")) {
-            build.addTextLineSpace(Integer.parseInt(oneprint[1]));
-        } else if (comment.equals("addTextRotate")) {
-            build.addTextRotate(Integer.parseInt(oneprint[1]));
-        } else if (comment.equals("addTextFont")) {
-            build.addTextFont(Integer.parseInt(oneprint[1]));
-        } else if (comment.equals("addTextSmooth")) {
-            build.addTextSmooth(Integer.parseInt(oneprint[1]));
-        } else if (comment.equals("addTextDouble")) {
-            if (oneprint.length == 1) {
-                build.addTextDouble(Builder.FALSE, Builder.FALSE);
-            } else {
-                build.addTextDouble(Integer.parseInt(oneprint[1]), Integer.parseInt(oneprint[2]));
-            }
-        } else if (comment.equals("addTextSize")) {
-            build.addTextSize(Integer.parseInt(oneprint[1]), Integer.parseInt(oneprint[2]));
-        } else if (comment.equals("addTextStyle")) {
-            build.addTextStyle(Integer.parseInt(oneprint[1]), Integer.parseInt(oneprint[2]), Integer.parseInt(oneprint[3]), Integer.parseInt(oneprint[4]));
-        } else if (comment.equals("addTextPosition")) {
-            build.addTextPosition(Integer.parseInt(oneprint[1]));
-        } else if (comment.equals("addFeedUnit")) {
-            build.addFeedUnit(Integer.parseInt(oneprint[1]));
-        } else if (comment.equals("addFeedLine")) {
-            build.addFeedLine(Integer.parseInt(oneprint[1]));
-        } else if (comment.equals("addBarcode")) {
-            if (oneprint.length == 2) {
-                build.addBarcode(oneprint[1], Builder.BARCODE_EAN13,
-                                 Builder.HRI_BELOW, Builder.PARAM_UNSPECIFIED,
-                                 2, 60);
-            } else {
-                build.addBarcode(oneprint[1], Integer.parseInt(oneprint[2]), Integer.parseInt(oneprint[3]),
-                                 Integer.parseInt(oneprint[4]), Integer.parseInt(oneprint[5]), Integer.parseInt(oneprint[6]));
-            }
-        } else if (comment.equals("addSymbol")) {
-            build.addSymbol(oneprint[1], Builder.SYMBOL_QRCODE_MODEL_2, Builder.LEVEL_L, 120, 120, 0);
-        } else if (comment.equals("addPageBegin")) {
-            build.addPageBegin();
-        } else if (comment.equals("addPageEnd")) {
-            build.addPageEnd();
-        } else if (comment.equals("addPageArea")) {
-            build.addPageArea(Integer.parseInt(oneprint[1]), Integer.parseInt(oneprint[2]), Integer.parseInt(oneprint[3]), Integer.parseInt(oneprint[4]));
-        } else if (comment.equals("addPageDirection")) {
-            build.addPageDirection(Integer.parseInt(oneprint[1]));
-        } else if (comment.equals("addPulse")) {
-            build.addPulse(Integer.parseInt(oneprint[1]), Integer.parseInt(oneprint[2]));
         } else if (comment.equals("clear")) {
             byte clear[] = {0x1b, 0x40};
             build.addCommand(clear);
@@ -199,22 +138,13 @@ public class jsposprinter extends CordovaPlugin {
         alertDialog.show();
     }
 
-    public void TcpPrint(String printstr, String ip, int port, CallbackContext callbackContext){
+    public void TcpPrint(String printstr, String ip, int port, CallbackContext callbackContext) {
         TcpPrinterTask tpt = new TcpPrinterTask();
         tpt.ip = ip;
         tpt.port = port;
         tpt.printstr = printstr;
         tpt.callbackContext = callbackContext;
         tpt.execute();
-    }
-
-    private void PrintHello(Builder build) throws AposException {
-        Print printer = new Print(cordova.getActivity());
-        printer.openPrinter(Print.DEVTYPE_USB, "RTPSO", 0, 0);
-        byte clear[] = {0x1b, 0x40};
-        build.addCommand(clear);
-        build.addText("PrintHello\n");
-        build.addCut(Builder.CUT_FEED);
     }
 
     private class TcpPrinterTask extends AsyncTask {
@@ -227,8 +157,17 @@ public class jsposprinter extends CordovaPlugin {
         @Override
         protected Object doInBackground(Object[] params) {
             String result = "OK";
+
             try {
-                byte[] t_printstr = printstr.getBytes(encode);
+                LitterBuilder build = new LitterBuilder("RTPSO", LitterBuilder.MODEL_CHINESE);
+                String[] printArr = printstr.split("::::");
+                for (int i = 0; i < printArr.length; i++) {
+                    String[] oneprint = printArr[i].split(";;;;");
+                    if (oneprint.length > 0) {
+                        ExplainComment(build, oneprint);
+                    }
+                }
+                byte[] t_printstr = build.sbuffer.getBytes("UTF-8");
                 Socket socket = new Socket();
                 SocketAddress socAddress = new InetSocketAddress(ip, port);
                 socket.connect(socAddress, 3000);
@@ -236,9 +175,11 @@ public class jsposprinter extends CordovaPlugin {
                 ostream.write(t_printstr);
                 socket.shutdownOutput();
                 socket.close();
-            } catch (IOException e) {
-                result = e.getMessage();
-            } catch (Exception e) {
+            }
+            // catch (IOException e) {
+            //     result = e.getMessage();
+            // } 
+            catch (Exception e) {
                 result = e.getMessage();
             }
             return result;
@@ -247,11 +188,10 @@ public class jsposprinter extends CordovaPlugin {
         @Override
         protected void onPostExecute(Object o) {
             // Alert(o.toString() + "");
-            if(o.toString() == "OK"){
+            if (o.toString() == "OK") {
                 callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, o.toString()));
                 callbackContext.success();
-            }
-            else{
+            } else {
                 callbackContext.error(o.toString());
             }
         }
