@@ -60,7 +60,9 @@ public class jsposprinter extends CordovaPlugin {
                 String printtext = args.getString(0);
                 String ip = args.getString(1);
                 int port = args.getInt(2);
-                TcpPrint(printtext, ip, port, callbackContext);
+                String encode = args.getString(3);
+                int timeout = args.getInt(4);
+                TcpPrint(printtext, ip, port, encode, timeout, callbackContext);
                 return true;
             } else if ("TestUsbPrint".equals(action)) {
                 UsbPrint("clear::::addText;;;;AppPrintPOS\n::::");
@@ -69,7 +71,7 @@ public class jsposprinter extends CordovaPlugin {
             } else if ("TestTcpPrint".equals(action)) {
                 String ip = args.getString(0);
                 int port = args.getInt(1);
-                TcpPrint("PrintText", ip, port, callbackContext);
+                TcpPrint("PrintText", ip, port, "GBK", 3000, callbackContext);
                 return true;
             }
         } catch (AposException e) {
@@ -196,7 +198,7 @@ public class jsposprinter extends CordovaPlugin {
             // Alert("NoThisComment:" + comment);
         }
     }
-    
+
     private void Alert(String msg) {
         Dialog alertDialog = new AlertDialog.Builder(this.cordova.getActivity()).
         setTitle("对话框的标题").
@@ -212,11 +214,13 @@ public class jsposprinter extends CordovaPlugin {
         alertDialog.show();
     }
 
-    public void TcpPrint(String printstr, String ip, int port, CallbackContext callbackContext) {
+    public void TcpPrint(String printstr, String ip, int port, int timeout, String encode, CallbackContext callbackContext) {
         TcpPrinterTask tpt = new TcpPrinterTask();
         tpt.ip = ip;
         tpt.port = port;
         tpt.printstr = printstr;
+        tpt.timeout = timeout;
+        tpt.encode = encode;
         tpt.callbackContext = callbackContext;
         tpt.execute();
     }
@@ -226,6 +230,7 @@ public class jsposprinter extends CordovaPlugin {
         public String encode = "GBK";
         public String printstr = "";
         public String ip = "";
+        public int timeout;
         public int port;
         // onPostExecute displays the results of the AsyncTask.
         @Override
