@@ -23,6 +23,10 @@
             </feature>
         </config-file>
 
+        <source-file src="src/android/libs/armeabi/libaposprint.so" target-dir="libs/armeabi"/>
+        <source-file src="src/android/libs/armeabi-v7a/libaposprint.so" target-dir="libs/armeabi-v7a"/>
+        <source-file src="src/android/libs/mips/libaposprint.so" target-dir="libs/mips"/>
+        <source-file src="src/android/libs/x86/libaposprint.so" target-dir="libs/x86"/>
         <source-file src="src/android/APOS.jar" target-dir="libs" />
         <source-file src="src/android/jsposprinter.java" target-dir="src/com/mrboss/jsposprinter" />
         <source-file src="src/android/LitterBuilder.java" target-dir="src/com/mrboss/jsposprinter" />
