@@ -88,8 +88,8 @@ public class jsposprinter extends CordovaPlugin {
     }
 
     public void UsbPrint(String printtext) throws AposException {
-        Print printer = new Print(cordova.getActivity());
-        printer.openPrinter(Print.DEVTYPE_USB, "RTPSO", 0, 0);
+        MyPrint printer = new MyPrint(cordova.getActivity());
+        printer.openPrinter(MyPrint.DEVTYPE_USB, "RTPSO", 0, 0);
         LitterBuilder build = new LitterBuilder("RTPSO", LitterBuilder.MODEL_CHINESE);
         int []status = {1};
         String[] printArr = printtext.split("::::");
