@@ -30,6 +30,7 @@
         <source-file src="src/android/APOS.jar" target-dir="libs" />
         <source-file src="src/android/jsposprinter.java" target-dir="src/com/mrboss/jsposprinter" />
         <source-file src="src/android/LitterBuilder.java" target-dir="src/com/mrboss/jsposprinter" />
+        <source-file src="src/android/MyPrint.java" target-dir="src/com/mrboss/jsposprinter" />
 
     </platform>
 
