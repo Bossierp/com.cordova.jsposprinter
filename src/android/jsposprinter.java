@@ -238,15 +238,16 @@ public class jsposprinter extends CordovaPlugin {
             String result = "OK";
 
             try {
-                LitterBuilder build = new LitterBuilder("RTPSO", LitterBuilder.MODEL_CHINESE);
-                String[] printArr = printstr.split("::::");
-                for (int i = 0; i < printArr.length; i++) {
-                    String[] oneprint = printArr[i].split(";;;;");
-                    if (oneprint.length > 0) {
-                        ExplainComment(build, oneprint);
-                    }
-                }
-                byte[] t_printstr = build.sbuffer.getBytes("UTF-8");
+                // LitterBuilder build = new LitterBuilder("RTPSO", LitterBuilder.MODEL_CHINESE);
+                // String[] printArr = printstr.split("::::");
+                // for (int i = 0; i < printArr.length; i++) {
+                //     String[] oneprint = printArr[i].split(";;;;");
+                //     if (oneprint.length > 0) {
+                //         ExplainComment(build, oneprint);
+                //     }
+                // }
+                // byte[] t_printstr = build.sbuffer.getBytes(encode);
+                byte[] t_printstr = printstr.getBytes(encode);
                 Socket socket = new Socket();
                 SocketAddress socAddress = new InetSocketAddress(ip, port);
                 socket.connect(socAddress, 3000);
