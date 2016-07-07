@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import android.os.AsyncTask;
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Context;
@@ -331,7 +332,7 @@ public class jsposprinter extends CordovaPlugin {
                 // ostream.write(t_printstr);
                 // socket.shutdownOutput();
                 // socket.close();
-                mGpService.openPort(printerId, PortParameters.BLUETOOTH, getBLUETOOTHDeviceAddress(), 0);
+                mGpService.openPort(printerId, PortParameters.BLUETOOTH, getBLUETOOTHDeviceAddress(startname), 0);
                 int rel = mGpService.sendEscCommand(printerId, printstr);
                 GpCom.ERROR_CODE r = GpCom.ERROR_CODE.values()[rel];
                 mGpService.closePort(printerId);
