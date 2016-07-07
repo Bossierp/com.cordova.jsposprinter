@@ -45,5 +45,8 @@ module.exports = {
     },
     TestTcpPrint: function(ip, port, successCallback, errorCallback) {
         exec(successCallback, errorCallback, 'jsposprinter', 'TestTcpPrint', [ip, port, successCallback, errorCallback]);
+    },
+    BlueToothPrint: function(printtext, startname, encode, successCallback, errorCallback) {
+        exec(successCallback, errorCallback, 'jsposprinter', 'BlueToothPrint', [printtext, startname, encode, successCallback, errorCallback]);
     }
 };

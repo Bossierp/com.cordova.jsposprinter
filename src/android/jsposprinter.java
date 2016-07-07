@@ -44,6 +44,22 @@ import com.apos.aposprinter.*;
 
 import java.io.*;
 
+
+
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.IBinder;
+import android.os.RemoteException;
+
+import com.gprinter.aidl.GpService;
+import com.gprinter.command.GpCom;
+import com.gprinter.io.PortParameters;
+
+import java.util.Set;
+
 public class jsposprinter extends CordovaPlugin {
 
     private static final String LOG_TAG = "jsposprinterPlugin";
@@ -63,6 +79,12 @@ public class jsposprinter extends CordovaPlugin {
                 String encode = args.getString(3);
                 int timeout = args.getInt(4);
                 TcpPrint(printtext, ip, port, timeout, encode, callbackContext);
+                return true;
+            } else if ("BlueToothPrint".equals(action)) {
+                String printtext = args.getString(0);
+                String startname = args.getString(1);
+                String encode = args.getString(2);
+                BlueToothPrint(printtext, startname, encode, callbackContext);
                 return true;
             } else if ("TestUsbPrint".equals(action)) {
                 UsbPrint("clear::::addText;;;;AppPrintPOS\n::::");
@@ -275,5 +297,106 @@ public class jsposprinter extends CordovaPlugin {
                 callbackContext.error(o.toString());
             }
         }
+    }
+
+    public void BlueToothPrint(String printstr, String startname, String encode, CallbackContext callbackContext) {
+        BlueToothPrinterTask btpt = new BlueToothPrinterTask();
+        btpt.startname = startname;
+        btpt.printstr = printstr;
+        btpt.encode = encode;
+        btpt.callbackContext = callbackContext;
+        btpt.mainactive = this.cordova.getActivity();
+        btpt.execute();
+    }
+
+    private class BlueToothPrinterTask extends AsyncTask {
+        private GpService mGpService = null;
+        public Activity mainactive = null;
+        public CallbackContext callbackContext;
+        public String encode = "GBK";
+        public String printstr = "";
+        public String startname = "";
+        public int printerId = 0;
+        // onPostExecute displays the results of the AsyncTask.
+        @Override
+        protected Object doInBackground(Object[] params) {
+            String result = "OK";
+            try {
+                connection();
+                // byte[] t_printstr = printstr.getBytes(encode);
+                // Socket socket = new Socket();
+                // SocketAddress socAddress = new InetSocketAddress(ip, port);
+                // socket.connect(socAddress, 3000);
+                // OutputStream ostream = socket.getOutputStream();
+                // ostream.write(t_printstr);
+                // socket.shutdownOutput();
+                // socket.close();
+                mGpService.openPort(printerId, PortParameters.BLUETOOTH, getBLUETOOTHDeviceAddress(), 0);
+                int rel = mGpService.sendEscCommand(printerId, printstr);
+                GpCom.ERROR_CODE r = GpCom.ERROR_CODE.values()[rel];
+                mGpService.closePort(printerId);
+                if (r != GpCom.ERROR_CODE.SUCCESS) {
+                    result = GpCom.getErrorText(r);
+                }
+                else{
+                    result = "OK";
+                }
+            } 
+            catch (RemoteException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+                result = e1.getMessage();
+            }
+            catch (Exception e) {
+                result = e.getMessage();
+            }
+            return result;
+        }
+
+        @Override
+        protected void onPostExecute(Object o) {
+            // Alert(o.toString() + "");
+            if (o.toString() == "OK") {
+                callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, o.toString()));
+                callbackContext.success();
+            } else {
+                callbackContext.error(o.toString());
+            }
+        }
+
+        protected String getBLUETOOTHDeviceAddress(String startname){
+            // Get the local Bluetooth adapter
+            BluetoothAdapter tempmBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+            // Get a set of currently paired devices
+            Set<BluetoothDevice> pairedDevices = tempmBluetoothAdapter.getBondedDevices();
+            // If there are paired devices, add each one to the ArrayAdapter
+            if (pairedDevices.size() > 0) {
+                for (BluetoothDevice device : pairedDevices) {
+                    if(device.getName().startsWith(startname)){
+                        return device.getAddress();
+                    }
+                }
+            }
+            return "";
+        }
+
+        private void connection() {
+            PrinterServiceConnection conn = new PrinterServiceConnection();
+            Intent intent = new Intent("com.gprinter.aidl.GpPrintService");
+            intent.setPackage(mainactive.getPackageName());
+            mainactive.bindService(intent, conn, Context.BIND_AUTO_CREATE); // bindService
+        }
+
+        class PrinterServiceConnection implements ServiceConnection {
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+                mGpService = null;
+            }
+
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder service) {
+                mGpService = GpService.Stub.asInterface(service);
+            }
+        };
     }
 }
