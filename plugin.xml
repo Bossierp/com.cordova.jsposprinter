@@ -23,6 +23,11 @@
             </feature>
         </config-file>
 
+        <config-file target="AndroidManifest.xml" parent="/*">
+            <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+            <uses-permission android:name="android.permission.BLUETOOTH" />
+        </config-file>
+        
         <source-file src="src/android/libs/armeabi/libaposprint.so" target-dir="libs/armeabi"/>
         <source-file src="src/android/libs/armeabi-v7a/libaposprint.so" target-dir="libs/armeabi-v7a"/>
         <source-file src="src/android/libs/mips/libaposprint.so" target-dir="libs/mips"/>
