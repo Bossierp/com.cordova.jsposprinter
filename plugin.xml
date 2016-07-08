@@ -29,7 +29,7 @@
             <uses-permission android:name="android.permission.WAKE_LOCK" />
         </config-file>
         
-        <config-file target="AndroidManifest.xml" parent="/application">
+        <config-file target="AndroidManifest.xml" parent="/manifest/application">
             <receiver android:name="com.mrboss.jsposprinter.DeviceBootReceiver">
                 <intent-filter>
                     <action android:name="android.intent.action.BOOT_COMPLETED" />
