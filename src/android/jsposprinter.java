@@ -58,15 +58,22 @@ import android.os.RemoteException;
 import com.gprinter.aidl.GpService;
 import com.gprinter.command.GpCom;
 import com.gprinter.io.PortParameters;
+import com.gprinter.service.GpPrintService;
 
 import java.util.Set;
+import android.util.Base64;
 
 public class jsposprinter extends CordovaPlugin {
-
     private static final String LOG_TAG = "jsposprinterPlugin";
+    static GpService mGpService = null;
+    static boolean isconnect = false;
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
+        if (!isconnect) {
+            connection();
+            isconnect = true;
+        }
         try {
             if ("UsbPrint".equals(action)) {
                 String printtext = args.getString(0);
@@ -281,7 +288,7 @@ public class jsposprinter extends CordovaPlugin {
             }
             // catch (IOException e) {
             //     result = e.getMessage();
-            // } 
+            // }
             catch (Exception e) {
                 result = e.getMessage();
             }
@@ -307,9 +314,11 @@ public class jsposprinter extends CordovaPlugin {
         btpt.encode = encode;
         btpt.callbackContext = callbackContext;
         btpt.mainactive = this.cordova.getActivity();
+        btpt.mGpService = mGpService;
         btpt.execute();
     }
 
+    static boolean isopenPort = false;
     private class BlueToothPrinterTask extends AsyncTask {
         private GpService mGpService = null;
         public Activity mainactive = null;
@@ -318,37 +327,36 @@ public class jsposprinter extends CordovaPlugin {
         public String printstr = "";
         public String startname = "";
         public int printerId = 0;
+
         // onPostExecute displays the results of the AsyncTask.
         @Override
         protected Object doInBackground(Object[] params) {
             String result = "OK";
             try {
-                connection();
-                // byte[] t_printstr = printstr.getBytes(encode);
-                // Socket socket = new Socket();
-                // SocketAddress socAddress = new InetSocketAddress(ip, port);
-                // socket.connect(socAddress, 3000);
-                // OutputStream ostream = socket.getOutputStream();
-                // ostream.write(t_printstr);
-                // socket.shutdownOutput();
-                // socket.close();
+                byte[] t_printstr = printstr.getBytes(encode);
+                String str = Base64.encodeToString(t_printstr, Base64.DEFAULT);
                 mGpService.openPort(printerId, PortParameters.BLUETOOTH, getBLUETOOTHDeviceAddress(startname), 0);
-                int rel = mGpService.sendEscCommand(printerId, printstr);
+                Thread.sleep(3000);
+                if (!isopenPort) {
+                    isopenPort = true;
+                }
+                int rel = mGpService.sendEscCommand(printerId, str);
                 GpCom.ERROR_CODE r = GpCom.ERROR_CODE.values()[rel];
+                Thread.sleep(2000);
                 mGpService.closePort(printerId);
                 if (r != GpCom.ERROR_CODE.SUCCESS) {
                     result = GpCom.getErrorText(r);
-                }
-                else{
+                } else {
                     result = "OK";
                 }
-            } 
-            catch (RemoteException e1) {
+            } catch (RemoteException e1) {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();
                 result = e1.getMessage();
-            }
-            catch (Exception e) {
+            } catch (InterruptedException e) {
+                result = e.getMessage();
+            } catch (NullPointerException ex) {
+            } catch (Exception e) {
                 result = e.getMessage();
             }
             return result;
@@ -365,7 +373,7 @@ public class jsposprinter extends CordovaPlugin {
             }
         }
 
-        protected String getBLUETOOTHDeviceAddress(String startname){
+        protected String getBLUETOOTHDeviceAddress(String startname) {
             // Get the local Bluetooth adapter
             BluetoothAdapter tempmBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
             // Get a set of currently paired devices
@@ -373,31 +381,31 @@ public class jsposprinter extends CordovaPlugin {
             // If there are paired devices, add each one to the ArrayAdapter
             if (pairedDevices.size() > 0) {
                 for (BluetoothDevice device : pairedDevices) {
-                    if(device.getName().startsWith(startname)){
+                    if (device.getName().startsWith(startname)) {
                         return device.getAddress();
                     }
                 }
             }
             return "";
         }
+    }
 
-        private void connection() {
-            PrinterServiceConnection conn = new PrinterServiceConnection();
-            Intent intent = new Intent("com.gprinter.aidl.GpPrintService");
-            intent.setPackage(mainactive.getPackageName());
-            mainactive.bindService(intent, conn, Context.BIND_AUTO_CREATE); // bindService
+    private void connection() {
+        PrinterServiceConnection conn = new PrinterServiceConnection();
+        Intent intent = new Intent("com.gprinter.aidl.GpPrintService");
+        intent.setPackage(this.cordova.getActivity().getPackageName());
+        this.cordova.getActivity().bindService(intent, conn, Context.BIND_AUTO_CREATE); // bindService
+    }
+
+    class PrinterServiceConnection implements ServiceConnection {
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mGpService = null;
         }
 
-        class PrinterServiceConnection implements ServiceConnection {
-            @Override
-            public void onServiceDisconnected(ComponentName name) {
-                mGpService = null;
-            }
-
-            @Override
-            public void onServiceConnected(ComponentName name, IBinder service) {
-                mGpService = GpService.Stub.asInterface(service);
-            }
-        };
-    }
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            mGpService = GpService.Stub.asInterface(service);
+        }
+    };
 }

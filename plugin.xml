@@ -26,8 +26,22 @@
         <config-file target="AndroidManifest.xml" parent="/*">
             <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
             <uses-permission android:name="android.permission.BLUETOOTH" />
+            <uses-permission android:name="android.permission.WAKE_LOCK" />
         </config-file>
         
+        <config-file target="AndroidManifest.xml" parent="/application/*">
+            <receiver android:name="com.mrboss.jsposprinter.DeviceBootReceiver">
+                <intent-filter>
+                    <action android:name="android.intent.action.BOOT_COMPLETED" />
+                </intent-filter>
+            </receiver>
+            <service android:enabled="true" android:exported="true" android:label="GpPrintService" android:name="com.gprinter.service.GpPrintService" android:process=":remote">
+                <intent-filter>
+                    <action android:name="com.gprinter.aidl.GpPrintService" />
+                </intent-filter>
+            </service>
+        </config-file>
+
         <source-file src="src/android/libs/armeabi/libaposprint.so" target-dir="libs/armeabi"/>
         <source-file src="src/android/libs/armeabi-v7a/libaposprint.so" target-dir="libs/armeabi-v7a"/>
         <source-file src="src/android/libs/mips/libaposprint.so" target-dir="libs/mips"/>
@@ -41,6 +55,7 @@
         <source-file src="src/android/jsposprinter.java" target-dir="src/com/mrboss/jsposprinter" />
         <source-file src="src/android/LitterBuilder.java" target-dir="src/com/mrboss/jsposprinter" />
         <source-file src="src/android/MyPrint.java" target-dir="src/com/mrboss/jsposprinter" />
+        <source-file src="src/android/DeviceBootReceiver.java" target-dir="src/com/mrboss/jsposprinter" />
         <source-file src="src/android/GpService.aidl" target-dir="src/com/mrboss/jsposprinter/com/gprinter/aidl/GpService.aidl" />
 
     </platform>
