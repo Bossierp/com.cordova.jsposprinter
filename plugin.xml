@@ -56,7 +56,7 @@
         <source-file src="src/android/LitterBuilder.java" target-dir="src/com/mrboss/jsposprinter" />
         <source-file src="src/android/MyPrint.java" target-dir="src/com/mrboss/jsposprinter" />
         <source-file src="src/android/DeviceBootReceiver.java" target-dir="src/com/mrboss/jsposprinter" />
-        <source-file src="src/android/GpService.aidl" target-dir="src/com/mrboss/jsposprinter/com/gprinter/aidl/GpService.aidl" />
+        <source-file src="src/android/GpService.aidl" target-dir="src/com/mrboss/jsposprinter/com/gprinter/aidl" />
 
     </platform>
 
