@@ -356,6 +356,7 @@ public class jsposprinter extends CordovaPlugin {
             } catch (InterruptedException e) {
                 result = e.getMessage();
             } catch (NullPointerException ex) {
+                result = "object is null";
             } catch (Exception e) {
                 result = e.getMessage();
             }
@@ -376,6 +377,9 @@ public class jsposprinter extends CordovaPlugin {
         protected String getBLUETOOTHDeviceAddress(String startname) {
             // Get the local Bluetooth adapter
             BluetoothAdapter tempmBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+            if(tempmBluetoothAdapter == null){
+                return "";
+            }
             // Get a set of currently paired devices
             Set<BluetoothDevice> pairedDevices = tempmBluetoothAdapter.getBondedDevices();
             // If there are paired devices, add each one to the ArrayAdapter
