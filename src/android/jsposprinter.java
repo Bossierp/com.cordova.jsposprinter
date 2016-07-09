@@ -70,10 +70,6 @@ public class jsposprinter extends CordovaPlugin {
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
-        if (!isconnect) {
-            connection();
-            isconnect = true;
-        }
         try {
             if ("UsbPrint".equals(action)) {
                 String printtext = args.getString(0);
@@ -308,6 +304,15 @@ public class jsposprinter extends CordovaPlugin {
     }
 
     public void BlueToothPrint(String printstr, String startname, String encode, CallbackContext callbackContext) {
+        try {
+            if (!isconnect) {
+                connection();
+                isconnect = true;
+                Thread.sleep(3000);
+            }
+        } catch (Exception e) {
+        }
+
         BlueToothPrinterTask btpt = new BlueToothPrinterTask();
         btpt.startname = startname;
         btpt.printstr = printstr;
